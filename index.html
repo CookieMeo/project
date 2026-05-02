@@ -3,174 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskMaster Dashboard</title>
+    <title>TaskMaster - Трекер задач</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Иконки (FontAwesome) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+    
 <body>
-
-    <div class="app-container">
-        <!-- Боковая панель -->
+    <div class="container">
+        <!-- Левая панель -->
         <aside class="sidebar">
             <div class="logo">
                 <i class="fas fa-check-square"></i> TASKMASTER
             </div>
             <nav>
-                <a href="#" class="active"><i class="fas fa-th-large"></i> Dashboard</a>
-                <a href="#"><i class="fas fa-list-ul"></i> My Tasks</a>
-                <a href="#"><i class="fas fa-folder"></i> Projects</a>
-                <a href="#"><i class="fas fa-calendar-alt"></i> Calendar</a>
-                <a href="#"><i class="fas fa-users"></i> Team</a>
-                <a href="#"><i class="fas fa-cog"></i> Settings</a>
+                <ul>
+                    <li class="active" onclick="showView('dashboard')"><i class="fas fa-th-large"></i> Дашборд</li>
+                    <li><i class="fas fa-list-ul"></i> Мои задачи</li>
+                    <li><i class="fas fa-folder"></i> Проекты</li>
+                    <li><i class="fas fa-calendar-alt"></i> Календарь</li>
+                    <li><i class="fas fa-users"></i> Команда</li>
+                    <li><i class="fas fa-cog"></i> Настройки</li>
+                </ul>
             </nav>
-            <button class="btn-new-task">+ New Task</button>
+            <button class="btn-new-task" onclick="openModal('createTaskModal')">+ Новая задача</button>
         </aside>
 
         <!-- Основной контент -->
-        <main class="main-content">
-
-            <!-- Верхняя панель поиска -->
-            <header class="top-bar">
-                <div class="search-box">
+        <main class="main-content" id="dashboard-view">
+            <header>
+                <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search">
+                    <input type="text" placeholder="Поиск...">
                 </div>
                 <div class="user-profile">
                     <i class="far fa-bell"></i>
                     <img src="https://i.pravatar.cc/40" alt="Avatar">
-                    <span>Alexei S.</span>
-                    <i class="fas fa-chevron-down"></i>
+                    <span>Алексей С. <i class="fas fa-chevron-down"></i></span>
                 </div>
             </header>
 
-            <div id="dashboard-view">
-                <div class="content-layout">
+            <div class="dashboard-layout">
+                <div class="tasks-section">
+                    <h1>Панель задач</h1>
+                    <h3>Мои активные задачи</h3>
+                    <div id="tasks-list" class="tasks-list">
 
-                    <!-- Список задач -->
-                    <section class="tasks-column">
-                        <h2>Task Dashboard</h2>
-                        <p class="subtitle">My Active Tasks</p>
-                        <div class="task-list">
-                          
-                            <!-- Карточка задачи -->
-                            <div class="task-card" onclick="showTaskDetail()">
-                                <div class="task-info">
-                                    <input type="checkbox" checked>
-                                    <span class="task-title">UI Design Mockups</span>
-                                </div>
-                                <span class="tag tag-design">Design</span>
-                                <span class="task-date">25 Oct, 14:00</span>
-                                <span class="task-status">Status</span>
-                            </div>
-
-                            <div class="task-card">
-                                <div class="task-info">
-                                    <input type="checkbox">
-                                    <span class="task-title">Write Progress Report</span>
-                                </div>
-                                <span class="task-date">25 Oct, 14:00</span>
-                                <span class="task-status in-progress">In Progress</span>
-                            </div>
-
-                            <div class="task-card">
-                                <div class="task-info">
-                                    <input type="checkbox" checked>
-                                    <span class="task-title">Client Meeting</span>
-                                </div>
-                                <span class="tag tag-design">Design</span>
-                                <span class="task-date">25 Oct, 14:00</span>
-                                <span class="task-status">Status</span>
-                            </div>
-                        </div>
-                    </section>
-
-
-                    <!-- Календарь справа -->
-                    <aside class="calendar-column">
-                        <h3>Calendar</h3>
-                        <div class="calendar-widget">
-                            <div class="cal-header">
-                                <i class="fas fa-chevron-left"></i>
-                                <span>October 2023</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                            <div class="cal-days">
-                                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-                                <span>16</span>
-                                <div class="day active-day">
-                                    17 <div class="dot orange"></div>
-                                </div>
-                                <div class="day today">
-                                    18 <div class="dot blue"></div>
-                                    <small>Today</small>
-                                </div>
-                                <div class="day">
-                                    19 <div class="dot orange"></div>
-                                </div>
-                                <div class="day">
-                                    20 <div class="dot green"></div>
-                                </div>
-                                <div class="day">
-                                    21 <div class="dot orange"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-
-            <!-- Детальная страница задачи (скрыта по умолчанию) -->
-            <div id="task-detail-view" class="hidden">
-                <button class="back-btn" onclick="hideTaskDetail()"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-                <div class="detail-card">
-                    <div class="detail-header">
-                        <h2>Task Details: UI Design Mockups</h2>
-                    </div>
-                    <div class="detail-grid">
-                        <div class="detail-info">
-                            <div class="info-group">
-                                <label>Task Title</label>
-                                <p>UI Design Mockups</p>
-                            </div>
-                            <div class="info-group">
-                                <label>Deadline</label>
-                                <p>25.10.2023, 14:00</p>
-                            </div>
-                            <div class="info-group">
-                                <label>Status</label>
-                                <p>In Progress</p>
-                            </div>
-                            <div class="info-group wide">
-                                <label>Description</label>
-                                <p>Design main screens: Home, Profile, Calendar, Task View</p>
-                            </div>
-                        </div>
-                        <div class="subtasks-section">
-                            <h3>Subtasks</h3>
-                            <div class="subtask-item"><input type="checkbox" checked> 1. Draft Home Screen</div>
-                            <div class="subtask-item"><input type="checkbox" checked> 2. Design Profile Page</div>
-                            <div class="subtask-item"><input type="checkbox"> 3. Create Calendar View</div>
-                            <div class="subtask-item"><input type="checkbox"> 4. Develop Subtask Flow</div>
-                            <button class="btn-add-subtask">+ Add Subtask</button>
-                        </div>
+                        <!-- Задачи будут здесь -->
                     </div>
                 </div>
+
+                <!-- Календарь справа -->
+                <aside class="calendar-sidebar">
+                    <div class="calendar-header">
+                        <span id="current-month">Октябрь 2023</span>
+                    </div>
+                    <div class="calendar-grid" id="calendar-week">
+
+                        <!-- Дни недели (Пн-Вс) -->
+                        <div class="day-name">Пн</div><div class="day-name">Вт</div><div class="day-name">Ср</div>
+                        <div class="day-name">Чт</div><div class="day-name">Пт</div><div class="day-name">Сб</div>
+                        <div class="day-name">Вс</div>
+
+                        <!-- Числа месяца вставятся через JS -->
+                    </div>
+                </aside>
             </div>
+        </main>
+
+        <!-- Страница деталей задачи (скрыта по умолчанию) -->
+        <main class="main-content task-details-view" id="task-details-view" style="display: none;">
+            <button class="btn-back" onclick="showView('dashboard')"><i class="fas fa-arrow-left"></i> Назад к дашборду</button>
+            <div id="full-task-content"></div>
         </main>
     </div>
 
+    <!-- Модальное окно создания задачи -->
+    <div id="createTaskModal" class="modal">
+        <div class="modal-content">
+            <h2>Создать новую задачу</h2>
+            <form id="task-form">
+                <input type="text" id="task-name" placeholder="Название задачи" required>
+                <textarea id="task-desc" placeholder="Описание"></textarea>
+                <div class="form-row">
+                    <input type="date" id="task-deadline" required>
+                    <select id="task-status">
+                        <option value="В процессе">В процессе</option>
+                        <option value="Готов">Готов</option>
+                        <option value="Заморожен">Заморожен</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <input type="text" id="task-tags" placeholder="Теги (через запятую)">
+                    <input type="color" id="task-color" value="#ff6b00">
+                </div>
+                <div id="subtasks-container">
+                    <h4>Подзадачи</h4>
+                    <div id="subtasks-list-input"></div>
+                    <button type="button" onclick="addSubtaskInput()">+ Добавить подзадачу</button>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal('createTaskModal')">Отмена</button>
+                    <button type="submit" class="btn-save">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <script>
-        function showTaskDetail() {
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('task-detail-view').classList.remove('hidden');
-        }
-        function hideTaskDetail() {
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            document.getElementById('task-detail-view').classList.add('hidden');
-        }
-    </script>
+    <script src="script.js"></script>
 
 </body>
 
