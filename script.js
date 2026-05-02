@@ -1,5 +1,3 @@
-// Хранилище задач (в реальном проекте тут был бы API или LocalStorage)
-
 let tasks = [
 
     {
@@ -26,8 +24,6 @@ let tasks = [
 
 
 
-// Инициализация
-
 document.addEventListener('DOMContentLoaded', () => {
 
     renderTasks();
@@ -35,8 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
 
     
-
-    // Обработка формы
 
     document.getElementById('task-form').addEventListener('submit', (e) => {
 
@@ -50,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// Рендер списка задач на главном экране
+// Рендер списка задач
 
 function renderTasks() {
 
@@ -68,6 +62,10 @@ function renderTasks() {
 
         div.style.borderLeftColor = task.color;
 
+        
+
+        // Клик по всей карточке открывает детали
+
         div.onclick = () => showTaskDetails(task.id);
 
 
@@ -76,17 +74,23 @@ function renderTasks() {
 
             <div class="task-info">
 
-                <input type="checkbox">
+                <!-- Остановка всплытия (stopPropagation), чтобы при клике на чекбокс не открывалась задача (Пункт 3) -->
 
-                <strong>${task.title}</strong>
+                <input type="checkbox" class="task-checkbox" 
+
+                    ${task.status === 'Готов' ? 'checked' : ''} 
+
+                    onclick="event.stopPropagation(); toggleTaskStatus(${task.id})">
+
+                <strong style="${task.status === 'Готов' ? 'text-decoration: line-through; color: gray;' : ''}">${task.title}</strong>
 
                 <span class="tag" style="background: ${task.color}22; color: ${task.color}">${task.tags[0] || ''}</span>
 
             </div>
 
-            <div style="color: #888; font-size: 14px;">${task.deadline}</div>
+            <div class="task-deadline-display">${task.deadline}</div>
 
-            <div class="status">${task.status}</div>
+            <div class="task-status-display">${task.status}</div>
 
         `;
 
@@ -94,99 +98,23 @@ function renderTasks() {
 
     });
 
-    renderCalendar(); // Перерисовываем точки в календаре
+    renderCalendar();
 
 }
 
 
 
-// Календарь на неделю
+// Автоматическая смена статуса при нажатии на чекбокс (Пункт 3)
 
-function renderCalendar() {
+function toggleTaskStatus(id) {
 
-    const calendarWeek = document.getElementById('calendar-week');
+    const task = tasks.find(t => t.id === id);
 
-    const monthEl = document.getElementById('current-month');
+    if (task) {
 
-    
+        task.status = task.status === 'Готов' ? 'В процессе' : 'Готов';
 
-    // Удаляем старые даты (оставляем только заголовки дней недели)
-
-    const dayNames = calendarWeek.querySelectorAll('.day-name');
-
-    calendarWeek.innerHTML = '';
-
-    dayNames.forEach(dn => calendarWeek.appendChild(dn));
-
-
-
-    const today = new Date();
-
-    monthEl.innerText = today.toLocaleString('ru', { month: 'long', year: 'numeric' });
-
-
-
-    // Находим начало текущей недели (понедельник)
-
-    const startOfWeek = new Date(today);
-
-    const day = today.getDay();
-
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1); 
-
-    startOfWeek.setDate(diff);
-
-
-
-    for (let i = 0; i < 7; i++) {
-
-        const date = new Date(startOfWeek);
-
-        date.setDate(startOfWeek.getDate() + i);
-
-
-
-        const dateISO = date.toISOString().split('T')[0];
-
-        const isToday = date.toDateString() === today.toDateString();
-
-
-
-        const dayCell = document.createElement('div');
-
-        dayCell.className = `day-cell ${isToday ? 'today' : ''}`;
-
-        dayCell.innerHTML = `<span>${date.getDate()}</span>`;
-
-
-
-        // Добавляем цветные точки задач
-
-        const dotsContainer = document.createElement('div');
-
-        dotsContainer.className = 'dots-container';
-
-        
-
-        const dayTasks = tasks.filter(t => t.deadline === dateISO);
-
-        dayTasks.forEach(t => {
-
-            const dot = document.createElement('span');
-
-            dot.className = 'dot';
-
-            dot.style.backgroundColor = t.color;
-
-            dotsContainer.appendChild(dot);
-
-        });
-
-
-
-        dayCell.appendChild(dotsContainer);
-
-        calendarWeek.appendChild(dayCell);
+        renderTasks();
 
     }
 
@@ -194,17 +122,7 @@ function renderCalendar() {
 
 
 
-// Переключение видов (Дашборд / Детали задачи)
-
-function showView(viewId) {
-
-    document.getElementById('dashboard-view').style.display = viewId === 'dashboard' ? 'block' : 'none';
-
-    document.getElementById('task-details-view').style.display = viewId === 'details' ? 'block' : 'none';
-
-}
-
-
+// Страница деталей задачи с возможностью редактирования (Пункт 4)
 
 function showTaskDetails(id) {
 
@@ -218,17 +136,63 @@ function showTaskDetails(id) {
 
         <div class="details-card">
 
-            <h1 style="border-left: 10px solid ${task.color}; padding-left: 20px;">${task.title}</h1>
+            <div class="edit-form-group">
 
-            <div class="form-row">
+                <label>Название задачи</label>
 
-                <p><strong>Срок:</strong> ${task.deadline}</p>
-
-                <p><strong>Статус:</strong> ${task.status}</p>
+                <input type="text" id="edit-title" value="${task.title}" onchange="updateTaskField(${task.id}, 'title', this.value)">
 
             </div>
 
-            <p><strong>Описание:</strong><br>${task.desc}</p>
+            
+
+            <div class="form-row">
+
+                <div class="edit-form-group">
+
+                    <label>Дедлайн</label>
+
+                    <input type="date" id="edit-deadline" value="${task.deadline}" onchange="updateTaskField(${task.id}, 'deadline', this.value)">
+
+                </div>
+
+                <div class="edit-form-group">
+
+                    <label>Статус</label>
+
+                    <select id="edit-status" onchange="updateTaskField(${task.id}, 'status', this.value)">
+
+                        <option value="В процессе" ${task.status === 'В процессе' ? 'selected' : ''}>В процессе</option>
+
+                        <option value="Готов" ${task.status === 'Готов' ? 'selected' : ''}>Готов</option>
+
+                        <option value="Заморожен" ${task.status === 'Заморожен' ? 'selected' : ''}>Заморожен</option>
+
+                    </select>
+
+                </div>
+
+                <div class="edit-form-group">
+
+                    <label>Цвет</label>
+
+                    <input type="color" value="${task.color}" onchange="updateTaskField(${task.id}, 'color', this.value)">
+
+                </div>
+
+            </div>
+
+
+
+            <div class="edit-form-group">
+
+                <label>Описание</label>
+
+                <textarea id="edit-desc" rows="4" onchange="updateTaskField(${task.id}, 'desc', this.value)">${task.desc}</textarea>
+
+            </div>
+
+
 
             <h3>Подзадачи</h3>
 
@@ -238,11 +202,9 @@ function showTaskDetails(id) {
 
             </ul>
 
-            <div style="margin-top: 20px;">
+            
 
-                ${task.tags.map(t => `<span class="tag">${t}</span>`).join(' ')}
-
-            </div>
+            <button class="btn-save" onclick="showView('dashboard')" style="margin-top:20px">Сохранить и выйти</button>
 
         </div>
 
@@ -254,7 +216,37 @@ function showTaskDetails(id) {
 
 
 
-// Функции модального окна
+// Функция для мгновенного обновления данных задачи (Пункт 4)
+
+function updateTaskField(id, field, value) {
+
+    const task = tasks.find(t => t.id === id);
+
+    if (task) {
+
+        task[field] = value;
+
+        renderTasks(); // Обновляем главный экран в фоне
+
+    }
+
+}
+
+
+
+// --- Остальные функции без изменений ---
+
+
+
+function showView(viewId) {
+
+    document.getElementById('dashboard-view').style.display = viewId === 'dashboard' ? 'block' : 'none';
+
+    document.getElementById('task-details-view').style.display = viewId === 'details' ? 'block' : 'none';
+
+}
+
+
 
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 
@@ -321,5 +313,87 @@ function saveTask() {
     document.getElementById('task-form').reset();
 
     document.getElementById('subtasks-list-input').innerHTML = '';
+
+}
+
+
+
+function renderCalendar() {
+
+    const calendarWeek = document.getElementById('calendar-week');
+
+    const monthEl = document.getElementById('current-month');
+
+    const dayNames = calendarWeek.querySelectorAll('.day-name');
+
+    calendarWeek.innerHTML = '';
+
+    dayNames.forEach(dn => calendarWeek.appendChild(dn));
+
+
+
+    const today = new Date();
+
+    monthEl.innerText = today.toLocaleString('ru', { month: 'long', year: 'numeric' });
+
+
+
+    const startOfWeek = new Date(today);
+
+    const day = today.getDay();
+
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); 
+
+    startOfWeek.setDate(diff);
+
+
+
+    for (let i = 0; i < 7; i++) {
+
+        const date = new Date(startOfWeek);
+
+        date.setDate(startOfWeek.getDate() + i);
+
+        const dateISO = date.toISOString().split('T')[0];
+
+        const isToday = date.toDateString() === today.toDateString();
+
+
+
+        const dayCell = document.createElement('div');
+
+        dayCell.className = `day-cell ${isToday ? 'today' : ''}`;
+
+        dayCell.innerHTML = `<span>${date.getDate()}</span>`;
+
+
+
+        const dotsContainer = document.createElement('div');
+
+        dotsContainer.className = 'dots-container';
+
+        
+
+        const dayTasks = tasks.filter(t => t.deadline === dateISO);
+
+        dayTasks.forEach(t => {
+
+            const dot = document.createElement('span');
+
+            dot.className = 'dot';
+
+            dot.style.backgroundColor = t.color;
+
+            dotsContainer.appendChild(dot);
+
+        });
+
+
+
+        dayCell.appendChild(dotsContainer);
+
+        calendarWeek.appendChild(dayCell);
+
+    }
 
 }
