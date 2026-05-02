@@ -129,7 +129,9 @@ header {
     justify-content: space-between;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     cursor: pointer;
-    border-left: 5px solid transparent;
+    border-left: 12px solid transparent; /* Было 5px, стало 12px */
+    transition: transform 0.2s;
+    gap: 20px; /* Добавляем общий отступ между элементами */
 }
 
 .task-info {
@@ -144,10 +146,42 @@ header {
     padding: 4px 12px;
     border-radius: 15px;
     font-size: 12px;
-
 }
 
+.task-deadline-display {
+    margin-left: auto; /* Выталкивает дату и статус вправо */
+    margin-right: 20px; /* Делает отступ от статуса */
+    color: #888;
+    font-size: 14px;
+    min-width: 100px;
+}
 
+.task-status-display {
+    min-width: 100px;
+    text-align: right;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Стиль для чекбокса, чтобы он выглядел крупнее */
+
+.task-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* Стили для формы редактирования внутри задачи */
+
+.edit-form-group {
+    margin-bottom: 15px;
+}
+
+.edit-form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
 
 /* Calendar */
 
