@@ -1,5 +1,3 @@
-// --- Глобальные переменные ---
-
 let tasks = [
 
     {
@@ -18,9 +16,7 @@ let tasks = [
 
         tags: ["Дизайн"],
 
-        subtasks: ["Экран входа", "Экран задач"],
-
-        pinned: false // Новое поле для закрепления
+        subtasks: ["Экран входа", "Экран задач"]
 
     }
 
@@ -28,19 +24,11 @@ let tasks = [
 
 
 
-// Текущая дата для календаря
-
-let currentDate = new Date();
-
-
-
-// --- Инициализация ---
-
 document.addEventListener('DOMContentLoaded', () => {
 
     renderTasks();
 
-    renderCalendar(currentDate); // Начинаем с текущей даты
+    renderCalendar();
 
     
 
@@ -56,11 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// --- Функции отрисовки ---
-
-
-
-// Отрисовка списка задач
+// Рендер списка задач
 
 function renderTasks() {
 
@@ -70,31 +54,17 @@ function renderTasks() {
 
 
 
-    // Разделяем задачи на закрепленные и обычные
-
-    const pinnedTasks = tasks.filter(task => task.pinned);
-
-    const otherTasks = tasks.filter(task => !task.pinned);
-
-
-
-    // Объединяем, закрепленные идут первыми
-
-    const sortedTasks = [...pinnedTasks, ...otherTasks];
-
-
-
-    sortedTasks.forEach(task => {
+    tasks.forEach(task => {
 
         const div = document.createElement('div');
 
-        div.className = `task-card ${task.pinned ? 'pinned' : ''}`; // Добавляем класс pinned
+        div.className = 'task-card';
 
         div.style.borderLeftColor = task.color;
 
         
 
-        // Клик по карточке открывает детали, но не если кликнули по чекбоксу, пину или крестику
+        // Клик по всей карточке открывает детали
 
         div.onclick = () => showTaskDetails(task.id);
 
@@ -102,7 +72,9 @@ function renderTasks() {
 
         div.innerHTML = `
 
-            <div class="task-title-wrapper">
+            <div class="task-info">
+
+                <!-- Остановка всплытия (stopPropagation), чтобы при клике на чекбокс не открывалась задача (Пункт 3) -->
 
                 <input type="checkbox" class="task-checkbox" 
 
@@ -110,31 +82,15 @@ function renderTasks() {
 
                     onclick="event.stopPropagation(); toggleTaskStatus(${task.id})">
 
-                
+                <strong style="${task.status === 'Готов' ? 'text-decoration: line-through; color: gray;' : ''}">${task.title}</strong>
 
-                <i class="fas fa-thumbtack pin-task-icon ${task.pinned ? 'pinned' : ''}" 
-
-                   onclick="event.stopPropagation(); togglePinTask(${task.id})"></i>
-
-                
-
-                <span class="task-title-text ${task.status === 'Готов' ? 'completed' : ''}">${task.title}</span>
+                <span class="tag" style="background: ${task.color}22; color: ${task.color}">${task.tags[0] || ''}</span>
 
             </div>
 
-            
+            <div class="task-deadline-display">${task.deadline}</div>
 
-            <div class="task-actions-right">
-
-                <div class="task-deadline-display">${task.deadline}</div>
-
-                <div class="task-status-display">${task.status}</div>
-
-                
-
-                <i class="fas fa-times delete-task-icon" onclick="event.stopPropagation(); deleteTask(${task.id})"></i>
-
-            </div>
+            <div class="task-status-display">${task.status}</div>
 
         `;
 
@@ -142,151 +98,13 @@ function renderTasks() {
 
     });
 
-}
-
-
-
-// Отрисовка календаря (теперь на месяц) (Пункт 1 и 2)
-
-function renderCalendar(date) {
-
-    const calendarGrid = document.getElementById('calendar-week');
-
-    const monthEl = document.getElementById('current-month');
-
-    
-
-    // Очищаем предыдущие дни, оставляя кнопки навигации
-
-    const headerElements = document.querySelectorAll('.calendar-header > *');
-
-    calendarGrid.innerHTML = ''; // Очищаем сетку
-
-    headerElements.forEach(el => document.querySelector('.calendar-header').appendChild(el)); // Возвращаем кнопки
-
-
-
-    const year = date.getFullYear();
-
-    const month = date.getMonth(); // 0 = Январь, 11 = Декабрь
-
-
-
-    monthEl.innerText = `${date.toLocaleString('ru', { month: 'long', year: 'numeric' })} г.`;
-
-
-
-    const firstDayOfMonth = new Date(year, month, 1);
-
-    const lastDayOfMonth = new Date(year, month + 1, 0); // 0-й день следующего месяца = последний день текущего
-
-    const daysInMonth = lastDayOfMonth.getDate();
-
-    const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 = Воскресенье, 1 = Понедельник ... 6 = Суббота
-
-
-
-    // Добавляем названия дней недели (если их нет)
-
-    if (!document.querySelector('.day-name')) {
-
-        const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-
-        dayNames.forEach(name => {
-
-            const dayNameEl = document.createElement('div');
-
-            dayNameEl.className = 'day-name';
-
-            dayNameEl.innerText = name;
-
-            calendarGrid.prepend(dayNameEl); // Добавляем в начало, чтобы были перед числами
-
-        });
-
-    }
-
-    
-
-    // Добавляем пустые ячейки до первого дня месяца
-
-    const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-
-    // Корректируем стартовый день, если воскресенье = 0, а нам нужно, чтобы понедельник был первым
-
-    const adjustedStartingDayOfWeek = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1; // 0 -> 6, 1 -> 0, 2 -> 1 ...
-
-    for (let i = 0; i < adjustedStartingDayOfWeek; i++) {
-
-        const emptyCell = document.createElement('div');
-
-        emptyCell.className = 'day-cell';
-
-        calendarGrid.appendChild(emptyCell);
-
-    }
-
-
-
-    // Добавляем дни месяца
-
-    for (let i = 1; i <= daysInMonth; i++) {
-
-        const dayCell = document.createElement('div');
-
-        const dayDate = new Date(year, month, i);
-
-        const dayISO = dayDate.toISOString().split('T')[0];
-
-        const isToday = dayDate.toDateString() === new Date().toDateString();
-
-
-
-        dayCell.className = `day-cell ${isToday ? 'today' : ''}`;
-
-        dayCell.innerHTML = `<span>${i}</span>`;
-
-
-
-        // Добавляем цветные точки задач
-
-        const dotsContainer = document.createElement('div');
-
-        dotsContainer.className = 'dots-container';
-
-        
-
-        const dayTasks = tasks.filter(t => t.deadline === dayISO);
-
-        dayTasks.forEach(t => {
-
-            const dot = document.createElement('span');
-
-            dot.className = 'dot';
-
-            dot.style.backgroundColor = t.color;
-
-            dotsContainer.appendChild(dot);
-
-        });
-
-
-
-        dayCell.appendChild(dotsContainer);
-
-        calendarGrid.appendChild(dayCell);
-
-    }
+    renderCalendar();
 
 }
 
 
 
-// --- Функции управления задачами ---
-
-
-
-// Переключение статуса задачи (Готов/В процессе)
+// Автоматическая смена статуса при нажатии на чекбокс (Пункт 3)
 
 function toggleTaskStatus(id) {
 
@@ -298,155 +116,13 @@ function toggleTaskStatus(id) {
 
         renderTasks();
 
-        // Не перерисовываем календарь, т.к. дата не меняется
-
     }
 
 }
 
 
 
-// Удаление задачи (Пункт 3)
-
-function deleteTask(id) {
-
-    if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
-
-        tasks = tasks.filter(task => task.id !== id);
-
-        renderTasks();
-
-        renderCalendar(currentDate); // Перерисовываем календарь, чтобы убрать точки
-
-    }
-
-}
-
-
-
-// Закрепление/открепление задачи (Пункт 4)
-
-function togglePinTask(id) {
-
-    const task = tasks.find(t => t.id === id);
-
-    if (task) {
-
-        task.pinned = !task.pinned;
-
-        renderTasks(); // Перерисовываем список задач, чтобы обновить порядок и стили
-
-    }
-
-}
-
-
-
-// --- Функции календаря ---
-
-
-
-// Переход на предыдущий месяц (Пункт 2)
-
-function prevMonth() {
-
-    currentDate.setMonth(currentDate.getMonth() - 1);
-
-    renderCalendar(currentDate);
-
-}
-
-
-
-// Переход на следующий месяц (Пункт 2)
-
-function nextMonth() {
-
-    currentDate.setMonth(currentDate.getMonth() + 1);
-
-    renderCalendar(currentDate);
-
-}
-
-
-
-// --- Функции модального окна создания задачи ---
-
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-
-
-function addSubtaskInput() {
-
-    const container = document.getElementById('subtasks-list-input');
-
-    const input = document.createElement('input');
-
-    input.type = 'text';
-
-    input.placeholder = 'Название подзадачи';
-
-    input.className = 'subtask-item';
-
-    container.appendChild(input);
-
-}
-
-
-
-function saveTask() {
-
-    const title = document.getElementById('task-name').value;
-
-    const desc = document.getElementById('task-desc').value;
-
-    const deadline = document.getElementById('task-deadline').value;
-
-    const status = document.getElementById('task-status').value;
-
-    const color = document.getElementById('task-color').value;
-
-    const tags = document.getElementById('task-tags').value.split(',').map(t => t.trim()).filter(t => t !== ''); // Фильтруем пустые теги
-
-    
-
-    const subtaskInputs = document.querySelectorAll('.subtask-item');
-
-    const subtasks = Array.from(subtaskInputs).map(i => i.value).filter(v => v !== '');
-
-
-
-    const newTask = {
-
-        id: Date.now(),
-
-        title, desc, deadline, status, color, tags, subtasks,
-
-        pinned: false // Новая задача не закреплена по умолчанию
-
-    };
-
-
-
-    tasks.push(newTask);
-
-    renderTasks();
-
-    renderCalendar(currentDate); // Перерисовываем календарь, чтобы отобразить новые точки
-
-    closeModal('createTaskModal');
-
-    document.getElementById('task-form').reset();
-
-    document.getElementById('subtasks-list-input').innerHTML = '';
-
-}
-
-
-
-// --- Функции страницы деталей задачи ---
+// Страница деталей задачи с возможностью редактирования (Пункт 4)
 
 function showTaskDetails(id) {
 
@@ -522,13 +198,13 @@ function showTaskDetails(id) {
 
             <ul id="details-subtasks">
 
-                ${task.subtasks.map((s, index) => `<li><input type="checkbox" onchange="updateSubtaskStatus(${task.id}, ${index}, this.checked)"> ${s}</li>`).join('')}
+                ${task.subtasks.map(s => `<li><input type="checkbox"> ${s}</li>`).join('')}
 
             </ul>
 
             
 
-            <button class="btn-save" onclick="saveAndExitTaskDetails(${task.id})" style="margin-top:20px">Сохранить и выйти</button>
+            <button class="btn-save" onclick="showView('dashboard')" style="margin-top:20px">Сохранить и выйти</button>
 
         </div>
 
@@ -558,30 +234,166 @@ function updateTaskField(id, field, value) {
 
 
 
-// Функция для обновления статуса подзадачи
+// --- Остальные функции без изменений ---
 
-function updateSubtaskStatus(taskId, subtaskIndex, isChecked) {
 
-    const task = tasks.find(t => t.id === taskId);
 
-    // Здесь логика обновления статуса подзадачи (пока просто перерисовываем, т.к. в макете нет хранения статусов подзадач)
+function showView(viewId) {
 
-    // Для полного функционала понадобится массив статусов для каждой подзадачи.
+    document.getElementById('dashboard-view').style.display = viewId === 'dashboard' ? 'block' : 'none';
 
-    renderTasks(); // Перерисовываем, чтобы отразить изменения (если они будут)
+    document.getElementById('task-details-view').style.display = viewId === 'details' ? 'block' : 'none';
 
 }
 
 
 
-// Сохранить и выйти из режима редактирования задачи
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 
-function saveAndExitTaskDetails(id) {
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // По факту, все изменения сохраняются мгновенно через onchange.
 
-    // Эта функция просто возвращает на главный экран.
 
-    showView('dashboard');
+function addSubtaskInput() {
+
+    const container = document.getElementById('subtasks-list-input');
+
+    const input = document.createElement('input');
+
+    input.type = 'text';
+
+    input.placeholder = 'Название подзадачи';
+
+    input.className = 'subtask-item';
+
+    container.appendChild(input);
+
+}
+
+
+
+function saveTask() {
+
+    const title = document.getElementById('task-name').value;
+
+    const desc = document.getElementById('task-desc').value;
+
+    const deadline = document.getElementById('task-deadline').value;
+
+    const status = document.getElementById('task-status').value;
+
+    const color = document.getElementById('task-color').value;
+
+    const tags = document.getElementById('task-tags').value.split(',').map(t => t.trim());
+
+    
+
+    const subtaskInputs = document.querySelectorAll('.subtask-item');
+
+    const subtasks = Array.from(subtaskInputs).map(i => i.value).filter(v => v !== '');
+
+
+
+    const newTask = {
+
+        id: Date.now(),
+
+        title, desc, deadline, status, color, tags, subtasks
+
+    };
+
+
+
+    tasks.push(newTask);
+
+    renderTasks();
+
+    closeModal('createTaskModal');
+
+    document.getElementById('task-form').reset();
+
+    document.getElementById('subtasks-list-input').innerHTML = '';
+
+}
+
+
+
+function renderCalendar() {
+
+    const calendarWeek = document.getElementById('calendar-week');
+
+    const monthEl = document.getElementById('current-month');
+
+    const dayNames = calendarWeek.querySelectorAll('.day-name');
+
+    calendarWeek.innerHTML = '';
+
+    dayNames.forEach(dn => calendarWeek.appendChild(dn));
+
+
+
+    const today = new Date();
+
+    monthEl.innerText = today.toLocaleString('ru', { month: 'long', year: 'numeric' });
+
+
+
+    const startOfWeek = new Date(today);
+
+    const day = today.getDay();
+
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); 
+
+    startOfWeek.setDate(diff);
+
+
+
+    for (let i = 0; i < 7; i++) {
+
+        const date = new Date(startOfWeek);
+
+        date.setDate(startOfWeek.getDate() + i);
+
+        const dateISO = date.toISOString().split('T')[0];
+
+        const isToday = date.toDateString() === today.toDateString();
+
+
+
+        const dayCell = document.createElement('div');
+
+        dayCell.className = `day-cell ${isToday ? 'today' : ''}`;
+
+        dayCell.innerHTML = `<span>${date.getDate()}</span>`;
+
+
+
+        const dotsContainer = document.createElement('div');
+
+        dotsContainer.className = 'dots-container';
+
+        
+
+        const dayTasks = tasks.filter(t => t.deadline === dateISO);
+
+        dayTasks.forEach(t => {
+
+            const dot = document.createElement('span');
+
+            dot.className = 'dot';
+
+            dot.style.backgroundColor = t.color;
+
+            dotsContainer.appendChild(dot);
+
+        });
+
+
+
+        dayCell.appendChild(dotsContainer);
+
+        calendarWeek.appendChild(dayCell);
+
+    }
 
 }
